@@ -1,25 +1,31 @@
 # main.py
 import os
-from src.data_loader import load_data
-from src.preprocessing import preprocess_pipeline, split_and_save, apply_smote
+import pandas as pd
+import joblib
+from imblearn.over_sampling import SMOTE
 from src.train_model import train_logistic_regression, train_random_forest, train_xgboost, save_model, evaluate_model
 from src.evaluate import plot_roc_curves, plot_feature_importance
-import joblib
-from src.config import MODEL_DIR
+from src.config import RANDOM_STATE
+
+def load_processed_data():
+    """Đọc dữ liệu đã được tiền xử lý từ thư mục data/processed/"""
+    X_train = pd.read_csv("data/processed/X_train.csv")
+    X_test = pd.read_csv("data/processed/X_test.csv")
+    y_train = pd.read_csv("data/processed/y_train.csv").values.ravel()
+    y_test = pd.read_csv("data/processed/y_test.csv").values.ravel()
+    print(f"Train: {X_train.shape}, Test: {X_test.shape}")
+    return X_train, X_test, y_train, y_test
 
 def main():
     os.makedirs("reports/figures", exist_ok=True)
     
-    # === TIỀN XỬ LÝ ===
-    print("=== TIỀN XỬ LÝ DỮ LIỆU ===")
-    df = load_data()
-    X, y, le_dict, scaler = preprocess_pipeline(df, fit_scaler=True)
-    X_train, X_test, y_train, y_test = split_and_save(X, y)
-    X_train_res, y_train_res = apply_smote(X_train, y_train)
+    # === ĐỌC DỮ LIỆU ĐÃ TIỀN XỬ LÝ ===
+    X_train, X_test, y_train, y_test = load_processed_data()
     
-    # Lưu scaler và label encoders
-    joblib.dump(scaler, f"{MODEL_DIR}/scaler.pkl")
-    joblib.dump(le_dict, f"{MODEL_DIR}/label_encoders.pkl")
+    # === ÁP DỤNG SMOTE (có thể tuỳ chọn) ===
+    smote = SMOTE(random_state=RANDOM_STATE)
+    X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
+    print(f"SMOTE: {X_train.shape} -> {X_train_res.shape}")
     
     # === HUẤN LUYỆN MÔ HÌNH ===
     print("\n=== HUẤN LUYỆN MÔ HÌNH ===")
