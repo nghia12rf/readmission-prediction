@@ -1,0 +1,28 @@
+# Data (quá lớn, không nên push)
+data/raw/*.csv
+data/processed/*.csv
+
+# Models đã train (có thể push hoặc không, tùy bạn, nhưng thường không)
+models/*.pkl
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
