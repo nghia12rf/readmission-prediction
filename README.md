@@ -17,16 +17,16 @@
 
 ## 📖 Tổng quan
 
-**Bài toán:**  
+**Bài toán:**
 Dự đoán nhị phân – bệnh nhân có tái nhập viện trong vòng 30 ngày hay không.
 
-**Dữ liệu:**  
+**Dữ liệu:**
 Bộ dữ liệu công khai [Diabetes 130-US Hospitals (1999-2008)](https://archive.ics.uci.edu/ml/datasets/Diabetes+130-US+hospitals+for+years+1999-2008) từ UCI Machine Learning Repository, bao gồm hơn 100.000 lượt nhập viện với 50 đặc trưng (nhân khẩu, lâm sàng, thuốc, lịch sử khám chữa bệnh,…).
 
-**Quy trình:**  
+**Quy trình:**
 Tiền xử lý → SMOTE cân bằng lớp → Huấn luyện các mô hình (Logistic Regression, Random Forest, XGBoost) → Đánh giá → Xây dựng ứng dụng demo.
 
-**Kết quả chính:**  
+**Kết quả chính:**
 Mô hình XGBoost đạt **recall 49%** và **AUC-ROC 0.6475** trên tập kiểm tra, giúp phát hiện gần một nửa số bệnh nhân có nguy cơ tái nhập viện.
 
 ---
@@ -48,7 +48,7 @@ Mô hình XGBoost đạt **recall 49%** và **AUC-ROC 0.6475** trên tập kiể
 
 ## 📁 Cấu trúc dự án
 
-```
+```text
 readmission-prediction/
 │
 ├── data/                         # Dữ liệu (được .gitignore, chỉ giữ cấu trúc)
@@ -83,7 +83,7 @@ readmission-prediction/
 
 ### 1. Clone repository
 ```bash
-git clone https://github.com/nghia12rf/readmission-prediction.git
+git clone [https://github.com/nghia12rf/readmission-prediction.git](https://github.com/nghia12rf/readmission-prediction.git)
 cd readmission-prediction
 ```
 
@@ -144,11 +144,11 @@ Trình duyệt sẽ mở ra giao diện, cho phép nhập thông tin bệnh nhâ
 
 ### Hiệu suất các mô hình (trên tập test)
 
-| Mô hình | Recall (tái nhập) | Precision (tái nhập) | F1-score | AUC-ROC |
-|---------|-------------------|----------------------|----------|---------|
-| Logistic Regression | 0.50 | 0.13 | 0.20 | 0.6208 |
-| Random Forest       | 0.16 | 0.17 | 0.17 | 0.6248 |
-| **XGBoost**         | **0.49** | **0.15** | **0.22** | **0.6475** |
+| Mô hình             | Recall (tái nhập) | Precision (tái nhập) | F1-score | AUC-ROC |
+|---------------------|-------------------|----------------------|----------|---------|
+| Logistic Regression | 0.50              | 0.13                 | 0.20     | 0.6208  |
+| Random Forest       | 0.16              | 0.17                 | 0.17     | 0.6248  |
+| **XGBoost**         | **0.49**          | **0.15**             | **0.22** | **0.6475** |
 
 - **XGBoost** được chọn cho ứng dụng do recall cao nhất, ưu tiên phát hiện bệnh nhân có nguy cơ.
 
@@ -167,7 +167,7 @@ Dự án được phát triển cho mục đích học tập, sử dụng bộ d
 
 ## 👥 Tác giả
 
-Nhóm sinh viên – **Trường Đại học Công Thương Thành phố Hồ Chí Minh**  
+Nhóm sinh viên – **Trường Đại học Công Thương Thành phố Hồ Chí Minh**
 Giảng viên hướng dẫn: ****
 
 ---
