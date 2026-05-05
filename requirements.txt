@@ -1,0 +1,21 @@
+# Xử lý dữ liệu
+pandas>=1.3.0
+numpy>=1.21.0
+
+# Học máy và tiền xử lý
+scikit-learn>=1.0.0
+xgboost>=1.5.0
+imbalanced-learn>=0.8.0
+
+# Trực quan hóa
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# Lưu và tải mô hình
+joblib>=1.1.0
+
+# Ứng dụng web
+streamlit>=1.10.0
+
+# (Tùy chọn) Jupyter notebook để thử nghiệm
+jupyter>=1.0.0
