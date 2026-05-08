@@ -1,5 +1,3 @@
-
-```markdown
 # 🏥 Dự đoán nguy cơ tái nhập viện ở bệnh nhân đái tháo đường
 
 Đồ án môn **Khai phá dữ liệu** – Xây dựng mô hình phân lớp dự đoán khả năng bệnh nhân đái tháo đường tái nhập viện trong vòng 30 ngày sau xuất viện, từ đó hỗ trợ các cơ sở y tế chủ động lập kế hoạch chăm sóc.
