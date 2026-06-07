@@ -160,6 +160,6 @@ Dự án được phát triển cho mục đích học tập, sử dụng bộ d
 ## 👥 Tác giả
 
 Nhóm sinh viên – **Trường Đại học Công Thương Thành phố Hồ Chí Minh**
-Giảng viên hướng dẫn: ****
+Giảng viên hướng dẫn: **Th.S Nguyễn Thị Huyền Trang**
 
 ```
