@@ -3,7 +3,7 @@
 Đồ án môn **Khai phá dữ liệu** – Xây dựng mô hình phân lớp dự đoán khả năng bệnh nhân đái tháo đường tái nhập viện trong vòng 30 ngày sau xuất viện, từ đó hỗ trợ các cơ sở y tế chủ động lập kế hoạch chăm sóc.
 
 ## 📌 Mục lục
-- [Tổng quan](#-tổng-quan)
+- [Tổng quan](#-tổng quan)
 - [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
 - [Cấu trúc dự án](#-cấu-trúc-dự-án)
 - [Cài đặt và chạy](#-cài-đặt-và-chạy)
@@ -16,16 +16,18 @@
 ## 📖 Tổng quan
 
 **Bài toán:**
-Dự đoán nhị phân – bệnh nhân có tái nhập viện trong vòng 30 ngày hay không.
+Dự đoán nhị phân – bệnh nhân có tái nhập viện trong vòng 30 ngày hay không (nhãn `readmitted` = `<30` là 1, ngược lại là 0).
 
 **Dữ liệu:**
 Bộ dữ liệu công khai [Diabetes 130-US Hospitals (1999-2008)](https://archive.ics.uci.edu/ml/datasets/Diabetes+130-US+hospitals+for+years+1999-2008) từ UCI Machine Learning Repository, bao gồm hơn 100.000 lượt nhập viện với 50 đặc trưng (nhân khẩu, lâm sàng, thuốc, lịch sử khám chữa bệnh,…).
 
-**Quy trình:**
-Tiền xử lý → SMOTE cân bằng lớp → Huấn luyện các mô hình (Logistic Regression, Random Forest, XGBoost) → Đánh giá → Xây dựng ứng dụng demo.
+**Quy trình huấn luyện nâng cao:**
+Nhằm giải quyết vấn đề mất cân bằng lớp nghiêm trọng (chỉ ~9% ca tái nhập viện), quy trình đã được tối ưu hóa theo hai hướng:
+1. **Mô hình tuyến tính (Logistic Regression)**: Sử dụng phương pháp **SMOTE** để cân bằng lớp trên tập huấn luyện nhằm tìm ranh giới phân lớp tốt hơn.
+2. **Mô hình cây quyết định (Random Forest & XGBoost)**: Huấn luyện trên **dữ liệu gốc (chưa SMOTE)** để tránh hiện tượng quá khớp (overfitting) các mẫu nhân tạo, kết hợp kỹ thuật **Cost-Sensitive Learning** (tham số phạt lỗi `class_weight='balanced'` cho RF và `scale_pos_weight` cho XGBoost) giúp tối đa hóa khả năng tổng quát hóa trên tập kiểm tra thực tế.
 
 **Kết quả chính:**
-Mô hình XGBoost đạt **recall 49%** và **AUC-ROC 0.6475** trên tập kiểm tra, giúp phát hiện gần một nửa số bệnh nhân có nguy cơ tái nhập viện.
+Mô hình XGBoost đạt **recall 49%** và **AUC-ROC 0.6475** trên tập kiểm tra, giúp phát hiện gần một nửa số bệnh nhân có nguy cơ tái nhập viện mà vẫn giữ được tính tổng quát hóa tốt nhất.
 
 ---
 
@@ -40,7 +42,7 @@ Mô hình XGBoost đạt **recall 49%** và **AUC-ROC 0.6475** trên tập kiể
   - `imbalanced-learn` – SMOTE
   - `matplotlib`, `seaborn` – vẽ biểu đồ
   - `streamlit` – xây dựng ứng dụng demo
-  - `joblib` – lưu/mô hình
+  - `joblib` – lưu/tải mô hình
 
 ---
 
@@ -58,17 +60,17 @@ readmission-prediction/
 │   ├── config.py                 # Đường dẫn, tham số
 │   ├── data_loader.py            # Đọc dữ liệu thô
 │   ├── preprocessing.py          # Tiền xử lý, SMOTE, chia train/test
-│   ├── train_model.py            # Huấn luyện 3 mô hình
-│   ├── evaluate.py               # Đánh giá, vẽ ROC, feature importance
-│   └── utils.py                  # (không dùng)
+│   ├── train_model.py            # Huấn luyện các mô hình
+│   └── evaluate.py               # Thư viện vẽ biểu đồ phân tích và so sánh
 │
 ├── models/                       # Mô hình đã huấn luyện (.pkl) và scaler
 ├── app/                          # Ứng dụng Streamlit
 │   └── app.py
 │
-├── reports/figures/              # Biểu đồ (ROC, feature importance)
-├── preprocess_only.py            # Chạy tiền xử lý (một lần)
-├── main.py                       # Huấn luyện + đánh giá (chạy sau preprocess)
+├── reports/figures/              # Biểu đồ (được tự động sinh ra phục vụ viết báo cáo)
+├── preprocess_only.py            # Chạy tiền xử lý dữ liệu (chạy một lần)
+├── main.py                       # Chạy huấn luyện lại và đánh giá mô hình
+├── generate_report_charts.py     # Tạo tự động 13 biểu đồ phân tích phục vụ viết báo cáo
 ├── environment.yml               # Môi trường Conda
 ├── requirements.txt              # Pip dependencies
 ├── .gitignore
@@ -81,7 +83,7 @@ readmission-prediction/
 
 ### 1. Clone repository
 ```bash
-git clone [https://github.com/nghia12rf/readmission-prediction.git](https://github.com/nghia12rf/readmission-prediction.git)
+git clone https://github.com/nghia12rf/readmission-prediction.git
 cd readmission-prediction
 ```
 
@@ -105,15 +107,20 @@ python preprocess_only.py
 - Sinh các file CSV trong `data/processed/`
 - Lưu `scaler.pkl` và `label_encoders.pkl` vào `models/`
 
-### 5. Huấn luyện và đánh giá
+### 5. Huấn luyện và đánh giá mô hình
 ```bash
 python main.py
 ```
-- Huấn luyện Logistic Regression, Random Forest, XGBoost (có SMOTE)
-- In báo cáo phân loại (precision, recall, f1) và AUC-ROC
-- Vẽ ROC curves và feature importance (lưu vào `reports/figures/`)
+- Huấn luyện Logistic Regression (với SMOTE), Random Forest (với class weights) và XGBoost (với scale_pos_weight).
+- Đánh giá hiệu suất và in ra báo cáo phân loại (precision, recall, f1) cùng AUC-ROC trên tập kiểm tra thực tế.
 
-### 6. Chạy ứng dụng demo
+### 6. Tự động xuất biểu đồ phục vụ viết báo cáo
+```bash
+python generate_report_charts.py
+```
+- Tự động tạo và lưu **13 biểu đồ phân tích** lâm sàng (EDA), phân bố SMOTE, ma trận nhầm lẫn (confusion matrix) của từng mô hình, so sánh hiệu suất và đường cong ROC vào thư mục `reports/figures/`.
+
+### 7. Chạy ứng dụng demo
 ```bash
 streamlit run app/app.py
 ```
@@ -121,39 +128,26 @@ Trình duyệt sẽ mở ra giao diện, cho phép nhập thông tin bệnh nhâ
 
 ---
 
-## 🖥 Hướng dẫn sử dụng ứng dụng
-
-1. Nhập các thông tin cơ bản ở sidebar:
-   - Tuổi, giới tính
-   - Số ngày nằm viện, số xét nghiệm, số thuốc
-   - Số lần nhập viện nội trú trước đó
-   - Thay đổi thuốc, thuốc đái tháo đường, insulin
-2. Nhấn nút **"Dự đoán nguy cơ"**.
-3. Kết quả hiển thị:
-   - **Có nguy cơ** hoặc **Không có nguy cơ**
-   - Xác suất tái nhập viện
-   - Khuyến nghị chăm sóc tương ứng.
-
-> **Lưu ý:** Ứng dụng chỉ mang tính chất tham khảo, không thay thế chẩn đoán lâm sàng.
-
----
-
 ## 📊 Kết quả
 
-### Hiệu suất các mô hình (trên tập test)
+### Hiệu suất các mô hình (trên tập kiểm tra Test Set)
 
 | Mô hình             | Recall (tái nhập) | Precision (tái nhập) | F1-score | AUC-ROC |
 |---------------------|-------------------|----------------------|----------|---------|
-| Logistic Regression | 0.50              | 0.13                 | 0.20     | 0.6208  |
+| Logistic Regression | 0.53              | 0.12                 | 0.20     | 0.6128  |
 | Random Forest       | 0.16              | 0.17                 | 0.17     | 0.6248  |
 | **XGBoost**         | **0.49**          | **0.15**             | **0.22** | **0.6475** |
 
-- **XGBoost** được chọn cho ứng dụng do recall cao nhất, ưu tiên phát hiện bệnh nhân có nguy cơ.
+- **XGBoost** được chọn làm mô hình triển khai thực tế nhờ đạt chỉ số **AUC-ROC (0.6475)** và **F1-score (0.22)** tối ưu nhất, đồng thời giữ được **Recall đạt 49%** giúp bệnh viện chủ động khoanh vùng một nửa số bệnh nhân có nguy cơ tái nhập viện cao.
 
-### Biểu đồ ROC và Feature importance
-Các hình ảnh được lưu trong thư mục `reports/figures/`:
-- `roc_comparison.png` – so sánh ROC của 3 mô hình.
-- `feature_importance_RandomForest.png` và `feature_importance_XGBoost.png` – top 20 đặc trưng quan trọng.
+### Danh sách biểu đồ trong thư mục `reports/figures/`:
+* `class_distribution_comparison.png` – Phân bố mẫu trước/sau SMOTE.
+* `correlation_matrix.png` – Ma trận tương quan các đặc trưng số.
+* `eda_time_in_hospital.png`, `eda_num_medications.png`, `eda_number_inpatient.png`, `eda_age_distribution.png` – Biểu đồ EDA đặc trưng quan trọng.
+* `confusion_matrix_LogisticRegression.png`, `confusion_matrix_RandomForest.png`, `confusion_matrix_XGBoost.png` – Ma trận nhầm lẫn của từng mô hình.
+* `metrics_comparison.png` – So sánh trực quan các chỉ số đánh giá.
+* `roc_comparison.png` – So sánh đường cong ROC.
+* `feature_importance_RandomForest.png`, `feature_importance_XGBoost.png` – Top 20 đặc trưng quan trọng của các mô hình cây.
 
 ---
 
@@ -168,10 +162,4 @@ Dự án được phát triển cho mục đích học tập, sử dụng bộ d
 Nhóm sinh viên – **Trường Đại học Công Thương Thành phố Hồ Chí Minh**
 Giảng viên hướng dẫn: ****
 
----
-
-## 🙏 Cảm ơn
-
-- UCI Machine Learning Repository vì đã cung cấp bộ dữ liệu.
-- Cộng đồng mã nguồn mở Python vì các thư viện tuyệt vời.
 ```
