@@ -5,7 +5,7 @@ import io
 import pandas as pd
 import joblib
 from imblearn.over_sampling import SMOTE
-from src.train_model import train_logistic_regression, train_random_forest, train_xgboost, save_model, evaluate_model
+from src.train_model import train_logistic_regression, train_random_forest, train_xgboost, save_model, evaluate_model, cross_validate_models
 from src.evaluate import plot_roc_curves, plot_feature_importance
 from src.config import RANDOM_STATE
 
@@ -29,6 +29,9 @@ def main():
     
     # === ĐỌC DỮ LIỆU ĐÃ TIỀN XỬ LÝ ===
     X_train, X_test, y_train, y_test = load_processed_data()
+    
+    # === THỰC HIỆN STRATIFIED 5-FOLD CROSS VALIDATION ===
+    cross_validate_models(X_train, y_train)
     
     # === ÁP DỤNG SMOTE (chỉ dùng cho Logistic Regression) ===
     smote = SMOTE(random_state=RANDOM_STATE)

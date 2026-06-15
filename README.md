@@ -21,13 +21,15 @@ Dự đoán nhị phân – bệnh nhân có tái nhập viện trong vòng 30 n
 **Dữ liệu:**
 Bộ dữ liệu công khai [Diabetes 130-US Hospitals (1999-2008)](https://archive.ics.uci.edu/ml/datasets/Diabetes+130-US+hospitals+for+years+1999-2008) từ UCI Machine Learning Repository, bao gồm hơn 100.000 lượt nhập viện với 50 đặc trưng (nhân khẩu, lâm sàng, thuốc, lịch sử khám chữa bệnh,…).
 
-**Quy trình huấn luyện nâng cao:**
-Nhằm giải quyết vấn đề mất cân bằng lớp nghiêm trọng (chỉ ~9% ca tái nhập viện), quy trình đã được tối ưu hóa theo hai hướng:
-1. **Mô hình tuyến tính (Logistic Regression)**: Sử dụng phương pháp **SMOTE** để cân bằng lớp trên tập huấn luyện nhằm tìm ranh giới phân lớp tốt hơn.
-2. **Mô hình cây quyết định (Random Forest & XGBoost)**: Huấn luyện trên **dữ liệu gốc (chưa SMOTE)** để tránh hiện tượng quá khớp (overfitting) các mẫu nhân tạo, kết hợp kỹ thuật **Cost-Sensitive Learning** (tham số phạt lỗi `class_weight='balanced'` cho RF và `scale_pos_weight` cho XGBoost) giúp tối đa hóa khả năng tổng quát hóa trên tập kiểm tra thực tế.
+**Quy trình huấn luyện và kiểm định nâng cao:**
+Nhằm giải quyết vấn đề mất cân bằng lớp nghiêm trọng (chỉ ~9% ca tái nhập viện) và đảm bảo tính ổn định, quy trình được tối ưu hóa như sau:
+1. **Kiểm định chéo Stratified 5-Fold Cross-Validation**: Đánh giá chéo xoay vòng trên tập huấn luyện nhằm đảm bảo độ tin cậy của chỉ số và tối ưu hóa siêu tham số mà không gây rò rỉ dữ liệu.
+2. **Xử lý mất cân bằng lớp tích hợp**:
+   * **Logistic Regression**: Áp dụng **SMOTE** độc lập bên trong từng fold huấn luyện của Cross-Validation để tránh rò rỉ thông tin.
+   * **Random Forest & XGBoost**: Huấn luyện trên **dữ liệu gốc (chưa SMOTE)** để tránh quá khớp mẫu nhân tạo, kết hợp kỹ thuật **Cost-Sensitive Learning** (tham số `class_weight` cho RF và `scale_pos_weight` cho XGBoost) để tăng tầm quan trọng của lớp thiểu số trực tiếp ở cấp độ thuật toán.
 
 **Kết quả chính:**
-Mô hình XGBoost đạt **recall 49%** và **AUC-ROC 0.6475** trên tập kiểm tra, giúp phát hiện gần một nửa số bệnh nhân có nguy cơ tái nhập viện mà vẫn giữ được tính tổng quát hóa tốt nhất.
+Mô hình XGBoost đạt hiệu năng tối ưu và ổn định nhất với chỉ số kiểm định chéo trung bình **AUC-ROC 0.6449 ± 0.0076** và đạt **recall 49%** trên tập kiểm tra thực tế, giúp phát hiện hiệu quả bệnh nhân có nguy cơ cao.
 
 ---
 
@@ -130,7 +132,21 @@ Trình duyệt sẽ mở ra giao diện, cho phép nhập thông tin bệnh nhâ
 
 ## 📊 Kết quả
 
-### Hiệu suất các mô hình (trên tập kiểm tra Test Set)
+### 1. Hiệu suất kiểm định chéo (Stratified 5-Fold Cross-Validation)
+
+Để đánh giá tính ổn định và tính tổng quát hóa của các mô hình, quy trình kiểm định chéo Stratified 5-Fold được thực hiện trên tập huấn luyện (Train Set):
+
+| Mô hình | Recall | Precision | F1-score | AUC-ROC |
+| :--- | :--- | :--- | :--- | :--- |
+| **Logistic Regression** (SMOTE) | 0.5431 ± 0.0197 | 0.1225 ± 0.0029 | 0.1998 ± 0.0051 | 0.6165 ± 0.0104 |
+| **Random Forest** (Cost-Sensitive) | 0.1309 ± 0.0149 | 0.1713 ± 0.0108 | 0.1482 ± 0.0129 | 0.6225 ± 0.0091 |
+| **XGBoost** (Cost-Sensitive) | **0.4892 ± 0.0149** | **0.1480 ± 0.0043** | **0.2272 ± 0.0065** | **0.6449 ± 0.0076** |
+
+*Nhận xét:* XGBoost đạt hiệu năng vượt trội và ổn định nhất với F1-score trung bình **0.2272** và AUC-ROC trung bình **0.6449**, đồng thời kiểm soát độ lệch chuẩn ở mức rất thấp qua các fold.
+
+### 2. Hiệu suất đánh giá cuối cùng (trên tập kiểm tra độc lập Test Set)
+
+Sau khi lựa chọn mô hình và cấu hình tốt nhất, mô hình được huấn luyện trên toàn bộ tập Train và đánh giá trên tập kiểm tra thực tế (20% dữ liệu chưa từng tiếp xúc):
 
 | Mô hình             | Recall (tái nhập) | Precision (tái nhập) | F1-score | AUC-ROC |
 |---------------------|-------------------|----------------------|----------|---------|
